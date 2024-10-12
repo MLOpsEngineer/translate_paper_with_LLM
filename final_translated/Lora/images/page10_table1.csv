@@ -1,0 +1,14 @@
+0,1,2,3,4,5,6
+,WHAT IS THE OPTIMAL RANK r FOR LORA?,,,,,
+"turn our
+attention to the","effect of
+rank r",,on model performance.,,We,"adapt {Wq, Wv},"
+"{Wq, Wk, Wv, Wc}, and just Wq for a comparison.",,,,,,
+,Weight Type,r = 1,r = 2,r = 4,r = 8,r = 64
+,Wq,68.8,69.6,70.5,70.4,70.0
+WikiSQL(±0.5%),,,,,,
+,"Wq, Wv",73.4,73.3,73.7,73.8,73.5
+,"Wq, Wk, Wv, Wo",74.1,73.7,74.0,74.0,73.9
+,Wq,90.7,90.9,91.1,90.7,90.7
+MultiNLI (±0.1%),"Wq, Wv",91.3,91.4,91.3,91.6,91.4
+,"Wq, Wk, Wv, Wo",91.2,91.7,91.7,91.5,91.4

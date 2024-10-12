@@ -1,0 +1,37 @@
+0
+guarantees that we do not introduce any additional latency during inference compared to a ﬁne-tuned
+model by construction.
+"4.2
+APPLYING LORA TO TRANSFORMER"
+"In principle, we can apply LoRA to any subset of weight matrices in a neural network to reduce the"
+"number of trainable parameters.
+In the Transformer architecture,
+there are four weight matrices in"
+"the self-attention module (Wq, Wk, Wv, Wo) and two in the MLP module. We treat Wq (or Wk, Wv)"
+"as a single matrix of dimension dmodel × dmodel, even though the output dimension is usually sliced"
+into attention heads. We limit our study to only adapting the attention weights for downstream
+tasks and freeze the MLP modules (so they are not trained in downstream tasks) both for simplicity
+and parameter-efﬁciency.We further study the effect on adapting different types of attention weight
+matrices in a Transformer in Section 7.1. We leave the empirical investigation of adapting the MLP
+"layers, LayerNorm layers, and biases to a future work."
+"Practical Beneﬁts and Limitations.
+The most signiﬁcant beneﬁt comes from the reduction in"
+"memory and storage usage.
+For a large Transformer
+trained with Adam, we reduce that VRAM"
+"the frozen
+usage by up to 2/3 if r (cid:28) dmodel as we do not need to store the optimizer states for"
+"parameters. On GPT-3 175B, we reduce the VRAM consumption during training from 1.2TB to"
+"350GB. With r = 4 and only the query and value projection matrices being adapted, the checkpoint"
+"size is reduced by roughly 10,000× (from 350GB to 35MB)4. This allows us to train with signiﬁ-"
+cantly fewer GPUs and avoid I/O bottlenecks. Another beneﬁt is that we can switch between tasks
+"while deployed at a much lower cost by only swapping the LoRA weights as opposed to all
+the"
+parameters. This allows for the creation of many customized models that can be swapped in and out
+on the ﬂy on machines that store the pre-trained weights in VRAM. We also observe a 25% speedup
+during training on GPT-3 175B compared to full ﬁne-tuning5 as we do not need to calculate the
+gradient for the vast majority of the parameters.
+"LoRA also has its limitations. For example, it is not straightforward to batch inputs to different tasks"
+"with different A and B in a single forward pass, if one chooses to absorb A and B into W to eliminate"
+additional inference latency. Though it is possible to not merge the weights and dynamically choose
+the LoRA modules to use for samples in a batch for scenarios where latency is not critical.

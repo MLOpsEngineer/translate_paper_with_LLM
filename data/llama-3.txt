@@ -1,0 +1,160 @@
+Review of Self-Attention
+comes the interesting part in which we will watch how the self attention Works in Lama but before we can talk about the
+self-attention as used in Lama we need to review at least briefly the self-attension in the vanilla
+Transformer so if you remember the self attention in the vanilla Transformer
+we start with the Matrix Q which is a matrix of sequence by the model which
+means that we have on the rows the tokens and on the columns the dimensions of the embedding Vector so we can think
+of it like the following let me okay
+so we can think of it like having six rows one and each of these rows is a vector of Dimension 512 that represents
+the embedding of that token and now let me delete
+and then we multiply according to this formula so Q multiplied by the transpose of the K so transpose of the K divided
+by the square root of 512 which is the dimension of the embedding vector where
+the K is equal to q and V is also equal to Q because this is a self-attention so
+the three matrices are actually the same sequence then we apply the soft Max and we obtain
+this Matrix so we have the Matrix that was 6 by 512 multiplied by another that
+is 512 by 6 we will obtain a matrix that is six by six where each items in this
+Matrix represents the dot product of the first token with itself then the first
+token with the second token the first token with the third token the first token with the fourth token etc etc etc
+so this Matrix captures the intensity of relationship between two tokens
+then this is the output of this soft Max is multiplied by the V Matrix to obtain
+the attention sequence so the output of the self attention is another Matrix that has the
+same dimensions as the initial Matrix so it will produce a sequence where the
+embedding the null not only capture the meaning of each token not only they capture the position of each token but
+they also capture kind of the relationship between that token and every other token if you didn't
+understand this concept please go back watch my previous video about the Transformer where I explain it very
+carefully and it in much more detail now let's have a look at the multi-head
+attention very briefly so the multi-head attention basically means that we have an input
+sequence we we take it we copy it into q k and V so they are the same Matrix we
+multiply by parameter matrices and then we split into multiple smaller
+matrices one for each head and we calculate the attention between these heads so head one had two had three had
+four then we concatenate the output of these heads we multiply by the output
+Matrix w o and finally we have the output of the multi-head attention let's look at what is the first KV cache
+KV Cache
+so before we introduce the KV cache we need to understand how llama was trained
+and we need to understand what is the next token prediction task so Lama just
+like most of the language large language models have been trained on the next token prediction task which means that
+given a sequence it will try to predict what is the next token the most likely
+next token to continue the prompt so for example if we tell him
+a poem for example without the last word probably it will come up with the the
+last word that is missing from that poem in this case I will be using one very
+famous passage from Dante allegiers and I will not use the Italian translation but we will use the English translation
+here so I will only deal with the first line you can see here love that can quickly seize the gentle heart
+so let's train llama on this sentence how does the training work well we give
+the input to the model the input is built in such a way that we first prepend the start of sentence token and
+then the target is built such that we append an end of sentence token why
+because the the model this Transformer model is a sequence to sequence model
+which Maps each position in the input sequence into another position into the
+in the output sequence so basically the first token of the input sequence will
+be mapped to the first token of the output sequence and the second token of the input sequence will be mapped to the
+second token of the output sequence etc etc etc this also means that if we give
+our model the input SOS it will produce the first token as output so love then
+if we give the second the first two tokens it will produce the second token
+as output so loved that and if we give the first three tokens it
+will produce the output the third token as output of course the model will also
+produce the output for the previous two tokens but we let's see it with an example so
+if you remember from my previous video also in which I do the inferencing when we train the model we only do it in one
+step so we give the input and we give the target we calculate the loss and we don't have any for Loop to train the
+model and for one single sentence but for the inference we need to do it token
+by token so in the in the in this inferencing we start with the time step
+the timestamp time step one in which we only give the input SOS so start of
+sentence and the output is love then we take the output token here love and we
+append it to the input and we give it again to the model and the model will produce the next token love that
+then we take the last token output by the model that we append it again to the
+input and the model will produce the next token and then we again take the next token so can we append it to the
+input and we feed it again to the model and the model will output the next token
+quickly and we do it for all the steps that are necessary until we reach the end of sentence token then that's when
+we know that the model has finished outputting its output now this is not
+how llama was trained actually uh but this is a good example to show
+you how the next token prediction task works now this is a there is a there is a
+problem with this approach let's see why at every step of the inference we are
+only interested in the last token output by the model because we already have the previous ones however the model needs to
+access to all the previous tokens to decide on which token to Output since they constitute its context or the
+prompt so what I mean by this is that to output for example the word d the model
+has to see all the input here we cannot just give the Seas the model needs to see all the input to Output this last
+token D but the point is this is a sequence to sequence model so it will
+produce this sequence as output even if we only care about the last token so there is a lot of unnecessary
+competition we are doing to calculate these tokens again that we already actually have from the previous time
+steps so let's find a way to not to do this useless computation
+and this is what we do with the KV cache so the KV cache is a way to do less
+computation on the tokens that we have already seen during inferencing so it's
+only applied during inferencing in a Transformer model and it not only
+applies to the Transformer of the um like the one in lava but to all
+Transformer models because all Transformer models work in this way this is a description and it's a picture of
+how the self-attention works during the next token prediction task so as you saw
+in also in my previous slides we have a query Matrix here with n tokens then we
+have the transposed of the keys so the query can be taught as rows of vectors where the first Vector
+represents the Third token the second token Etc then the transpose of the keys is the same tokens but transpose so the
+rows become columns this produces a matrix that is n by n so if the initial
+input Matrix is 9 and the output maximum will be nine by nine then we multiply it
+by the V Matrix and this will produce the attention their attention is then fed to the
+linear layer of the Transformer then the linear layer will produce the logits and
+the logits are fed to the soft Max and the soft Max allow us to decide which is the token from our vocabulary again if
+you are not familiar with this please watch my previous video on the of the Transformer about the inferencing of the
+Transformer and you will see this clearly so this is a description of what happens
+at the general level in the self-attention now let's watch it step by step
+so imagine at the inference step one we only have the first token if you remember before we are we're only using
+the start of sentence token so we take the start of sentence token we multiply it by itself so the transposed it will
+produce a matrix that is one by one so this Matrix is one by 4096 multiplied by
+another Matrix that is 40966 by 1 it will produce a one by one Matrix
+y4096 because the embedding Vector in llama is 4096 then the output so this
+one by one is multiplied by the V and it will produce the output token here and this is will be our first token
+of the output and then we take the output token this
+one and we append it to the input at the next step so now we have two tokens as input they are multiplied by itself but
+but with the transposed version of itself and it will produce a two by two Matrix which is then multiplied by the V
+Matrix and it will produce two output tokens but we are only interested in the last tokens output by the model so this
+one attention two which is then appended to the input Matrix at the time steps
+three so now we have three tokens in the time step three which are multiplied by
+the transposed version of itself and it will produce a three by three Matrix which is then multiplied by the V Matrix
+and we have these three matrices these three tokens as output but we are only
+interested in the last token output by the model so we append it again as input to the queue Matrix which is now four
+tokens which is multiplied by the transposed version of itself and it will
+produce a four by four Matrix as output which is then multiplied by this Matrix here and it will produce this attention
+Matrix here but we are all interested in the last attention which will be then added again to the input of The Next
+Step but we notice already something first of all we are already here in this
+Matrix where we compute the dot product between this token and this this token and this this token and this so This
+Matrix is the all the dot products between these two matrices we can see something the first thing is
+that we already computed these dot products in the previous step can we cache them so let's go back as you can
+see this Matrix is growing two three four see there is a lot of attention
+because we are every time we are inferencing the Transformer we are giving him giving the transform some
+input so it's recomputing all these thought products which is inconvenient because we actually already computed
+them in the previous time steps so is there a way to not compute them again can we kind of cache them yes we can
+and then since the model is causal we don't care about the attention of a
+token with its spread successors but only with the token before it so as you
+remember in the self-attention we apply a mask right so the mask is basically we
+don't want the dot product of one word with the word that come after it but
+only the one that come before it so basically we don't want all the numbers above the principal principal diagram
+diagonal of this Matrix and that's why we applied the mask in the self-attention but okay the point is we
+don't need to compute all these two dot products the only dot products that we are interested in is this last row so
+because we added the token 4 as input compared to the last time step so we
+only have this new token token 4 and we want this token for how it is inter
+interacting with all the other tokens so basically we are only interested in this
+last row here and also as we only care about the
+attention of the last token because we want to select the word from the vocabulary so we only care about the
+last row we don't care about producing these two these three attention score here
+in the output sequence of the self attention we only care about the last one so is there a way to remove all
+these redundant calculations yes we can do it with the KV cache let's see how
+so with the KV cache basically what we do is we cache the the query so sorry
+the the keys and the values and every time we have a new token we append it to
+the key and the values while the query is only the output of the previous step
+so at the beginning we don't have any output from the previous step so we only use the first token so the first the
+time step one of the inference is the same as the without the cache so we have the token one with itself will produce a
+matrix one by one multiplied with one token and if you produce one attention
+however at the time Step 2 we don't append it to the previous query
+we just replaced the previous token with the new token what we have here however we keep the cache of the keys so we keep
+the previous token in the keys and we append the last output to the Keys here and also to the values and if you and if
+you do this multiplication it will produce a matrix that is one by two where the first item is the dot product
+of the token 2 with the token one and the token 2 with the token 2. this is actually what we want and if we then
+multiply with the V Matrix it will only produce one attention score which is exactly the one we want and we do again
+so we take this attention to and this will become the input of the next
+inferencing step so this token 3 we append it to the previously cached K Matrix and
+also to the previously cached V Matrix this multiplication will produce an
+output Matrix that we can see here the multiplication of this output Matrix with this V Matrix will produce one
+token in the output which is this one and we know which token to select using this one then we use it as an input for
+the next inferencing step by appending it to the cached keys and appending to
+the cached V Matrix we do this multiplication and we will get this
+Matrix which is 4 1 by 4 which is the dot product of the token 4 with the
+token one the token four with the token two token four with token 3 and the token 4 with itself
+we multiply by the V Matrix and this will only produce one attention which is exactly what we want to select the
+output token this is the reason why it's called the KV cache because we are keeping a cache of the keys and the
+values as you can see the KV cache allows us to save a lot of computation because we are not doing a lot of dot
+products that were used to do that we used to do before and this makes the

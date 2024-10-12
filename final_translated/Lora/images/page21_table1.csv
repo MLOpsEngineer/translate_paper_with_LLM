@@ -1,0 +1,10 @@
+0,1,2,3,4,5
+Hyperparameters,Fine-Tune,PreEmbed,"PreLayer
+BitFit",AdapterH,LoRA
+Optimizer,,,AdamW,,
+Batch Size,,,128,,
+# Epoch,,,2,,
+Warmup Tokens,,,"250,000",,
+LR Schedule,,,Linear,,
+Learning Rate,5.00E-06,5.00E-04,"1.00E-04
+1.6E-03",1.00E-04,2.00E-04

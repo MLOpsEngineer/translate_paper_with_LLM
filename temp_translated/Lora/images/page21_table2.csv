@@ -1,0 +1,30 @@
+0
+"Warmup Tokens
+250,000"
+"LR Schedule
+Linear"
+"Learning Rate
+5.00E-06
+5.00E-04
+1.00E-04
+1.6E-03
+1.00E-04
+2.00E-04"
+Table 12: The training hyperparameters used for different GPT-3 adaption methods. We use the
+same hyperparameters for all datasets after tuning learning rate.
+"rally, we replace them after every Transformer block with an input agnostic vector. Thus, both the"
+embeddings and subsequent Transformer block activations are treated as trainable parameters. For
+"more on preﬁx-layer tuning, see Section 5.1."
+"In Table 15, we show the evaluation results of LoRA+PE and LoRA+PL on WikiSQL and MultiNLI."
+"First of
+all, LoRA+PE signiﬁcantly outperforms both LoRA and preﬁx-embedding tuning on"
+"WikiSQL, which indicates
+that LoRA is
+somewhat orthogonal
+to preﬁx-embedding tuning.
+On"
+"MultiNLI, the combination of LoRA+PE doesn’t perform better than LoRA, possibly because LoRA"
+"on its own already achieves performance comparable to the human baseline. Secondly, we notice"
+that LoRA+PL performs slightly worse than LoRA even with more trainable parameters. We at-
+tribute this to the fact that preﬁx-layer tuning is very sensitive to the choice of learning rate and thus
+makes the optimization of LoRA weights more difﬁcult in LoRA+PL.

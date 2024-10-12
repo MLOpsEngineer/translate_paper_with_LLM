@@ -1,0 +1,39 @@
+0,1,2,3,4,5
+"1
+INTRODUCTION",,,,,
+"Many applications
+in natural
+language processing rely on adapt-",,,,,
+,,,,f(x),
+"ing one large-scale, pre-trained language model
+to multiple down-",h,,,,
+"stream applications. Such adaptation is usually done via ﬁne-tuning,",,,,,
+which updates all the parameters of the pre-trained model. The ma-,,,,,
+,,,,Pretrained,
+,,,𝐵 = 0,,
+"jor downside of ﬁne-tuning is that
+the new model contains as many",Pretrained,,,,
+,,,,Weights,
+parameters as in the original model. As larger models are trained,Weights,,𝑟,,
+,,,,𝑊 ∈ ℝ𝑑×𝑑,
+"every few months,
+this changes
+from a mere “inconvenience” for",,,,,
+,𝑊 ∈ ℝ𝑑×𝑑,,,,
+"GPT-2 (Radford et al., b) or RoBERTa large (Liu et al., 2019) to a",,,"𝐴 = 𝒩(0, 𝜎2)",,
+,,,,,𝑑
+"critical deployment challenge for GPT-3 (Brown et al., 2020) with",,,,,
+,,𝑑,,,
+175 billion trainable parameters.1,,,,x,
+,x,,,,
+"Many sought
+to mitigate this by adapting only some parameters or",,,,,
+,,Figure 1: Our reparametriza-,,,
+"learning external modules for new tasks.
+This way, we only need",,,,,
+,,tion. We only train A and B.,,,
+to store and load a small number of task-speciﬁc parameters in ad-,,,,,
+"dition to the pre-trained model
+for each task, greatly boosting the",,,,,
+"operational efﬁciency when deployed. However, existing techniques",,,,,
+∗Equal contribution.,,,,,

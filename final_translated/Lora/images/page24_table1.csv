@@ -1,0 +1,22 @@
+0,1,2,3,4
+Hyperparameters,Adaptation,MNLI-100,MNLI-1k,"MNLI-10K
+MNLI-392K"
+Optimizer,-,,,AdamW
+Warmup Tokens,-,,,"250,000"
+LR Schedule,-,,,Linear
+Batch Size,-,20,20,"100
+128"
+# Epoch,-,40,40,"4
+2"
+,FineTune,,,5.00E-6
+,PreﬁxEmbed,2.00E-04,2.00E-04,"4.00E-04
+5.00E-04"
+Learning Rate,,,,
+,PreﬁxLayer,5.00E-05,5.00E-05,"5.00E-05
+1.00E-04"
+,LoRA,,,2.00E-4
+,PreﬁxEmbed lp,16,32,"64
+256"
+Adaptation-,PreﬁxEmbed li,,,8
+Speciﬁc,PreﬁxTune,,,lp = li = 8
+,LoRA,,,rq = rv = 8

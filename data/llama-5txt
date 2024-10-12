@@ -1,0 +1,64 @@
+SwiGLU Activation function
+has been converted into has its activation function changed with the
+ziglo function let's have a look at how it works so this weekly function was
+analyzed in this famous paper from Norm shazir who is also one of the author of
+the attention model who is also one of the uh one of the author of the multi-query attention that we saw before
+so let's have a look at this paper so the author compared the performance of
+the Transformer model by using different activation functions in the feed forward layer of the Transformer architecture
+and the one we are interested in is this zigloo here which is basically this
+function with beta equal to 1 calculated to in the X multiplied by a w Matrix
+which is a parameter Matrix which is then multiplied with X multiplied by v b is also another parameter Matrix and W2
+which is another mother parameter Matrix so compare this with the original
+feed forward Network and here we have three parameter matrices while in the original field forward Network we only
+had two so to make the comparison Fair the author reduce the number of the size
+of these matrices to um have to such that the model models
+total number of parameters Remains the Same with the vanilla Transformer in the vanilla Transformer we had this feed
+forward Network which was the relu function so this Max 0 Etc is the relu function
+and we only have the two parameter matrices actually some successor version of the Transformer
+didn't have the bias so this is I took this formula from the paper but there are many implementations without the
+bias actually and while in Lama we use this computation for the field forward
+Network and this is the code I took from the repository from Lama and as you can see it's just what the model says it's
+The Silo function why The Silo function because it's the switch function with beta equal to one and when the Swiss
+function that has this expression we give beta equal to one it's called the sigmoid linear unit that has this graph
+and it's called Silo so it's a silo function evaluated in the W1 of X then multiplied
+by W3 which is then we apply it to W2 so we have three
+matrices and these three matrices are basically linear layers now they use the
+parallelized version of this linear layer but it's a linear layer and if we look at the graph of this zero
+function we can see that it's kind of like um a
+loop but in this here before the zero we don't cancel out immediately the
+activation we keep a little tail here so that even values that are very close to
+Zero from the negative side are not automatically canceled out by the function so let's see how does it
+perform so this is we glue function actually performs very well here they evaluate the complex the log complexity
+the perplexity of the the model when we use this particular function and we can
+see that the the perplexity here is the lowest the perplexity basically means
+how unsure is the model about its choices and the ziggle function is com is
+performing well then they also run the same um the comparison on many uh
+benchmarks and we see that this wiggler function is performing quite well on a lot of them so why is this wiggloo uh
+activation function working so well if we look at the conclusion of this paper we see that we offer no explanation as
+to why this architecture seems to work we attribute their success as all else
+to Divine benevolence actually this is okay kind of funny but it's also kind of true because in most of the deep
+learning research we do not know why things work in the way they do because
+imagine you have a model of 70 billion parameters how can you prove what is
+happening to each one of them uh after you modify one activation
+function it's not easy to come up with a model that can explain why the model is reacting in particular way what usually
+we do we have some um we can either simplify the model so we can work with this very small model
+and then make some assumptions on why things work the way they do or we can
+just do it on a practical level so we take a model we modify it a little bit we do some oblation study and we check
+which one is performing better and this is also happens in a lot of areas of machine learning for example we do a lot
+of grid search to find the right parameters for a model because we cannot know beforehand which one will work well
+or which one to increase or which one to decrease because it depends on a lot of factors not only on the algorithm used
+but also on the data also on the particular computations used also on the normalization used so there is a lot of
+factors there is no formula for everything to explain everything so this is why the
+research needs to do a lot of study on the lotto and on the variants of models
+to come up with something that works maybe in one domain and doesn't work well in other domains so in this case we
+use this week glue mostly because in practice it works well with this kind of models
+thank you guys for watching this long video I hope that you learned uh in a
+deeper level what happens in llama and why it is different from a standard Transformer model I know that the video
+has been quite long and I know that it has been hard on some parts to follow so I actually kind of suggest to re-watch
+it multiple times especially the parts that you are less familiar with and to integrate this video with my previous
+video about the Transformer so you can I will put the chapters so you can easily find the part that you want but
+this is a what you need to do you need to watch multiple times the same concept to actually Master it and I hope to make
+another video in which we code the Llama model from zero so we can put all this Theory into practice but as you know I
+am doing this as a on my free time and my free time is not so much so thank you
+guys for watching my video and please subscribe to my channel because this is the best motivation for me to keep
+posting amazing content on AI and machine learning thank you for watching and have an amazing rest of the day

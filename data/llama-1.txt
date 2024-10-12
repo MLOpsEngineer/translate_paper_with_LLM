@@ -1,0 +1,180 @@
+Introduction
+hello guys welcome to my new video about llama in this video we will be seeing
+what is llama how it is made how it is structurally different from the
+Transformer and we will be building each block that makes up llama so I will not
+only explain you concept wise what is each block doing but we will also explore it from the mathematical point
+of view and also from the coding point of view so that we can unify Theory with
+practice I can guarantee that if you watch this video you will have a deep
+understanding of what makes llama the model it is so you will not only
+understand the how the blocks interacts with each other but how they function
+and why we needed these blocks in the first place in this video
+we will be reviewing a lot of topics so we will start from the architectural differences between the vanilla
+Transformer and the Llama model we will be watching what is the new normalization the RMS normalization
+rotary positional embedding KV cache multi-query attention group to multi-query attention the Ziggler
+activation function for the feed forward layer but of course I take for granted
+that you have some background knowledge first of all I highly recommend that you watch my previous video about the
+Transformer because you need to know how the Transformer works and in my previous video I also explored the concept of
+training and inferencing a Transformer model it's a 40 about 45 minutes and I
+think it's worth a watch because it will really give you a deep understanding of the Transformer after you have that
+knowledge you can watch this video anyway for those who have already watched the video but forgot some of
+some of some things I will review most of the concepts as we proceed through the the topics I also take for granted
+that you have some basic linear algebra knowledge so matrix multiplication dot product basic stuff anyway and also
+because we will be using the rotary position embeddings some knowledge about the complex numbers even if it's not
+fundamental so if you don't have the if you don't remember the complex numbers or how they work or the errors format it
+doesn't matter you will understand the concept not the math it's it's not really fundamental sometimes I will be
+reviewing topics that maybe you are already familiar with so feel free to skip those parts
+let's start our journey by reviewing the architectural differences between the vanilla Transformer and llama
+Transformer vs LLaMA
+this picture was built by me on the right side because I couldn't find the architecture
+picture from on the paper so let's review the differences as you
+remember in the vanilla Transformer we have an encoder part and the decoder part and the let me highlight it
+so this is the encoder and the right side here is the decoder while in Lama
+we only have an encoder first of all because the Llama is a large language model so it has been trained on the next
+prediction prediction token task so basically we only need the self-attention to predict the next token
+and we will see all these Concepts so we will see what is the next prediction task how it works and how this new
+self-fration works the second difference that we can see from these pictures is that we have here
+at the beginning we have the embedding and also we had the embedding here on the original Transformer but then right
+after the embedding we don't have the positional encoding but we have this RMS norm and actually all the Norms have
+been moved before the blocks so before we had the multi-head attention and then we had the other end Norm which is this
+plus sign here so it's a concatenation of a skip connection and the output of the multi-headed tension and the
+normalization and we also have this normalization here here here so after
+every block but here in larma we have it before every block and we will review what is the normalization and why
+it works like the the way it is right after the normalization we have this
+query key and values input for the self-attention one thing we can notice is that the
+positional encodings are not anymore the position encodings of the Transformer but they have become the rotary
+positional encodings and they are only applied to the query and the keys but not the values and we will see also why
+another thing is the self-attention is now the self-attention with KV cache we
+will see what is the KV cache and how it works and also we have this grouped multi-query attention
+another thing that changes is this feed forward layer in the original feed forward layer of the vanilla Transformer
+we had the relu activation function for the feed forward block but in Lama we
+are using this we glue function and we will see why this NX means that this block here in
+the dashed lines is repeated n times one after another such that the output of
+the last layer is then fed to this RMS Norm then to the linear layer and then to the soft Max
+and we will build each of these blocks from the bottom so I will show you exactly what these blocks do how they
+work how they interact with each other what is the math behind what is the problem they were trying to solve so we
+LLaMA 1
+will have a deep knowledge of this model let's start our journey with reviewing
+the the models introduced by llama so Lama one came out in February 2023
+and they had the four dimensions for this model one model was with a 6.7
+billion parameters 13 32 65 and then we have these numbers what do they mean the
+dimension here indicates the size of the embedding Vector so as you can see here
+we have this input embeddings that we will review later this is basically they convert each
+token into a vector of size indicated by this Dimension then we have the number of heads so how many heads the attention
+has the number of layers if you remember from the original Transformer the
+dimension was 512 the number of heads was 8 the number of layers I think was
+six and then we have the number of tokens each model was trained upon so 1
+LLaMA 2
+trillion and 1.4 trillion with lamba 2 most of the numbers have doubled so the
+context length is basically the sequence length so how much how um how what is
+the longest sequence the model can be fed and then the number of tokens upon which
+the model have been trained is also doubled so from one to two trillion for each size of the model while the
+parameters more or less remain the same then we have this column here gqa that
+indicates that these two sizes of the model so the 34 billion and 70 billion they use the grouped query attention and
+we will see how it works let's start by reviewing what is the embeddings layer
+Input Embeddings
+here and for that I will use the slides from my previous video if you remember my previous video we introduced the
+embedding like this so we have a sentence that is made of six words what
+we do is we tokenize this sentence so it converts into tokens the tokenization usually is done not by space but by the
+bpe tokenizer so actually each word will be split into sub words also but for
+clarity for Simplicity we just tokenize our sentence by using the white
+space as separator so each token is set rated by white space from other tokens
+and each token is then mapped into its position into the vocabulary so the vocabulary is how many words in the
+vocabulary is the list of the words that our model recognizes they don't have to be words of course
+they could be anything they are just tokens so each each token occupies the
+position in this vocabulary and the input that is indicated the number occupied by this uh by each token in the
+vocabulary then we map each input ID into a vector of size 512 in the original Transformer
+but in laramide becomes 4096 and these embeddings are vectors
+that are learnable so there are parameters for the model and while the model will be trained this embedding
+will change in such a way that they will capture the meaning of the word they are mapping
+so we hope that for example the word cat and dog will have similar embedding
+because kind of the map similar they at least they are in the same semantic group and also the word house and
+building they will be very close to each other if we check the the two vectors and this is the idea behind the
+Normalization & RMSNorm
+embedding now let's check what is normalization because this is the the layer right
+after the embeddings and for that let's introduce some review of the neural networks and how they work
+so suppose we have a feed forward neural network with an input
+a hidden layer made of neurons another hidden layer made of another another
+five layer neurons which then maps to an output we usually have a Target and
+comparing the output with the target we produce a loss the loss is then propagated back to the two hidden layers
+by means of back propagation so what we do is we calculate the gradient of the
+loss with respect to each weight of these two hidden layers and we modify these two these weights of the Hidden
+layer accordingly also according to the learning lead that we have set to check why we need to normalize and what is the
+need of normalization I will make a simple a simplification of the neural network so let's suppose our neural
+network is actually a factory a factory that makes phones so to make a phone we start with some raw material that are
+given to a hardware team that will take their raw material and produce some hardware for example they may we select
+the Bluetooth device they may select the display they may select the microphone
+the camera etc etc and they make up the hardware of this phone the hardware
+theme then gives this prototype to the software team which then creates the software for this hardware and then the
+output of the software team is the complete phone with hardware and software and is given as the output the
+output is then compared with what was the original design of the phone and then we compute a loss so what is
+the difference between the target we had for our phone and what we actually produced so suppose the loss is our CEO
+and the loss is quite big suppose so our CEO will talk with the hardware team and
+with the software team and will tell them to adjust their strategy so as to go closer to the Target next time so
+suppose that the hardware was too expensive so the CEO will tell the hardware team to use maybe a smaller
+display to use a cheaper camera to change the Bluetooth to a low range one or to change the Wi-Fi to a low energy
+one to change the battery etc etc and we'll also talk with the software team to adjust their strategy and then
+maybe tell the software team to concentrate Less on refactoring to
+concentrate Less on training to hire more interns and not care too much about the employees
+because the costs are too high blah blah and he will adjust the strategy of the software and the hardware team so the
+next time we start with the raw material again
+so let's go back we start with the raw material again and the hardware team according to the new
+strategy set by the CEO will produce a new hardware now the problem arises the software team
+now will receive a hardware that the software team has never seen before because the display has been changed the
+Bluetooth has been changed the Wi-Fi has been changed everything has been changed so the software team needs to
+redo a lot of work and especially they need to adjust their strategy a lot
+because they are dealing with something they have never seen before so the output of the software team will be much
+different compared to what they previously output and maybe it will be even further from
+the Target because the software team was not ready to make all these adjustments so maybe they wasted a lot of time so
+they may be they wasted a lot of resources so they maybe could not even reach the target even get closer to the
+Target so this time maybe the loss is even higher so as you can see the problem arises
+by the fact that the loss function modifies the weights of the harder team and the software team but then the
+software team at the next um at the next iteration receives an input that it has never seen before and
+this input makes it produce an output that is much Divergent compared to the
+one it used to produce before this will make the model oscillate kind of in the
+loss and will make this training very slower now let's look what happens at
+the math level to understand how the normalization works so let's review some maths suppose that
+we have a linear layer defined as nn.linear with the three input features
+and five output features with bias this is the linear layer as defined in pi
+torch the linear layer which create two matrices one called W the weight and one
+called B the biasm suppose we have an input of shape 10 rows by three columns
+the output of this linear layer with this input X will be 10 rows by 5
+columns but how does this happen mathematically let's review it so imagine we have our input which is 10 by
+3 which means that we have 10 items and each item has 10 features
+the W Matrix created by the linear layer will be five by three so the output
+features by the three input features and we can think of each of this row as
+one neuron each of them having three weights one weight for each of the input
+features of the X input then we have the bias vector and the
+bias Vector is one weight for each neuron because the bias is one for every
+neuron and this will produce an output which is a 10 by 5 which means we have
+10 items with 5 features let's try to understand what is the flow
+of information in this matrices the flow of information is governed by
+this expression so the output is equal to the X multiplied by the transpose of
+the W Matrix plus b so let's suppose we have this in input X
+and we have one item and the item one has three features A1 A2 and A3
+the transposed of WT is this Matrix here so in which we swap the row with the
+columns because according to the formula we need to make the transpose of that Matrix so we have neuron 1 with the
+three weights W1 w2w3 we multiply the two and we obtain this Matrix so X
+multiplied by the transpose of w produces this Matrix here in which this Row 1 is the dot product
+of this row Vector with this column vector
+then we add the B row Vector as you can see the to add two
+matrices they need to have the same Dimension but in pi torch because of broadcasting this row will be added to
+this row here and then to independently to this row and to this row etc etc because of the Broadcasting
+and then we will have this output and the first item here will be Z1 what is
+Z1 well Z1 is equal to R1 plus B1 but
+what is R1 R1 is the dot product of this column with this row or this row with
+this column so it's this expression here so the output of the neuron one for the
+item one only depends on the features of the item one usually after this output we also apply
+a non-linearity like the relu function which and the the argument of the relu
+function is referred to as the activation of the neuron one now as as we can see the output of the
+neural one only depends on the input features of each item so the output of
+an element for a data item depends on the features of the input data item and the neurons parameter we can think of
+the input to an error as the output of a previous layer so for example that input that we saw before the X it may as well
+be the output of the previous layer If the previous layer after its weight
+are updated because of the gradient descent changes drastically the output like we did before for example because
+the CEO realigned the strategy of the hardware team so the previous layer the hardware thing will produce an output
+that is drastically different compared to what it's used to produce the next layer will have its output
+changed also drastically so because it will be forced to readjust its weight
+drastically at the next step of the gradient descent so what we don't like is the fact that the weight the output
+of the previous layer changes much too much so that the next layer also has to change its output a lot because
+to adhere to the strategy defined by the loss function so this phenomenon by which the
+distribution of the internal nodes of a neuron change is referred to as internal covariate shift and we want to avoid it

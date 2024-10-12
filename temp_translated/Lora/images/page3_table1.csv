@@ -1,0 +1,37 @@
+0
+"During full ﬁne-tuning, the model is initialized to pre-trained weights Φ0 and updated to Φ0 + ∆Φ"
+by repeatedly following the gradient to maximize the conditional language modeling objective:
+|y|
+(cid:88)
+"(cid:88) t
+max
+(1)
+log (PΦ(yt|x, y<t))"
+Φ
+"=1
+(x,y)∈Z"
+"One of the main drawbacks for full ﬁne-tuning is that for each downstream task, we learn a different"
+"if the pre-trained model
+is large
+set of parameters ∆Φ whose dimension |∆Φ| equals |Φ0|. Thus,"
+"instances of
+(such as GPT-3 with |Φ0| ≈ 175 Billion), storing and deploying many independent"
+"ﬁne-tuned models can be challenging, if at all feasible."
+"In this paper, we adopt a more parameter-efﬁcient approach, where the task-speciﬁc parameter"
+increment ∆Φ = ∆Φ(Θ) is further encoded by a much smaller-sized set of parameters Θ with
+|Θ| (cid:28) |Φ0|. The task of ﬁnding ∆Φ thus becomes optimizing over Θ:
+|y|
+(cid:88)
+"(cid:88) t
+max
+(2)
+log (cid:0)pΦ0+∆Φ(Θ)(yt|x, y<t)(cid:1)"
+Θ
+"=1
+(x,y)∈Z"
+"In the subsequent sections, we propose to use a low-rank representation to encode ∆Φ that
+is both"
+"compute- and memory-efﬁcient. When the pre-trained model
+is GPT-3 175B,
+the number of train-"
+able parameters |Θ| can be as small as 0.01% of |Φ0|.

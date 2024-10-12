@@ -1,0 +1,185 @@
+because it makes training the network slower as the neurons are forced to re-adjust drastically their weights in
+One Direction or another because of drastic changes in the output of the previous layers so what do we do we do
+layer normalization at least in the vanilla Transformer so let's review how the layer normalization works
+imagine we still have our input X defined with 10 rows by three columns
+and for each of these items independently we
+calculate two statistics one is the moon so the mean and one is the sigma so then
+variance and then we normalize the values in this
+Matrix according to this formula so we take basically x minus its move so each
+item minus the moon divided by the square root of the variance plus Epsilon
+where Epsilon is a very small number so that the we never divide by zero in this way even if the radius is very small
+and each of this number is then multiplied with the two parameters one is gamma and one is beta they are both
+learnable by the model and they are useful because the model can adjust this
+gamma and beta to amplify the values that it needs
+so we before we had the layer normalization we we used to normalize with battery normalization and with
+batch normalization the only difference is that instead of calculating these statistics by rows we calculated them by
+columns so the future one feature two and feature three with layer normalization we do it by row and so
+each row will have its own mu and sigma so by using the linear normalization basically we transform the initial
+distribution of features no matter what they are into a normalized numbers that
+are distributed with zero mean and one variance so this formula actually comes from probability statistics and if you
+remember if you remember let me use the pen okay if you remember
+basically if we have a variable X which is distributed like a normal variable
+with a mean let's say 5 and a variance of 36 if we do x minus its mean so 5
+divided by the square root of the variance so 36
+this one this variable here let's call it Z will be distributed like n 0 1. so
+it will become a standard gaussian and this is exactly what we are doing here so we are transforming them into
+standard devotions so that this value most of the times will be occur close to
+zero I mean will be distributed around zero now let's talk about root mean Square
+normalization the one used by llama that the
+in the root mean Square normalization was introduced in this paper root mean Square layer normalization from these
+two researchers and let's read the paper together a well-known explanation of the success of
+layer Norm is its recentering and rescaling invariance proper property so
+what do they mean what is the re-centering and the reselling invariance the fact that the features no
+matter what they are they will be recentered around the zero mean and rescaled to have a variance of one the
+former enables the model to be insensitive to shift noises on both input and weights and the latter keeps
+the output representations intact when both input and weight are randomly scaled okay in this paper we hypothesize
+that the reselling variance is the reason for success of layer Norm rather
+than the recentering invariance so what they claim in this paper is that
+basically the success of layer Norm is not because of the recentering and the
+rescaling but mostly because of the rescaling so the this division by the variance basically so to have a variance
+of one and what they do is basically they said okay can we find another statistic that
+doesn't depend on the mean because we we believe that it's not necessary well yes
+they use this root mean Square statistic so this statistic defined here
+oops the the statistic they find here and as you can see from the expression of this
+statistic we don't use the mean to calculate it anymore because the previous statistics here so the variance
+to be calculated you need the mean because if you remember the variance to be calculated needs the
+mean so the variance is equal to the the summation of x minus mu to the power of
+2 divided by n so we need the the mean to calculate the variance so what the
+authors wanted to do in this paper they said okay because we don't need to re-center because we believe we
+hypothesize that the recentering is not needed to obtain the effect of the layer normalization
+we want to find the statistic that doesn't depend on the mean and the RMS statistic doesn't depend on the mean so
+they do exactly the same thing that they did in the layer normalization so they find calculate the RMS statistic by rows
+so if one for each row and then they normalize according to this formula here so they just divide by the statistic RMS
+statistic and then multiply by this gamma parameter which is learnable now why
+why root mean Square normalization well it requires less
+computation compared to layer normalization because we are not Computing two statistics so we are not
+Computing the mean and the sigma we are only Computing one so it gives you an
+computational advantage and it works well in practice so actually what the
+authors of the paper hypothesized is actually true we only need the
+invariance to obtain the effect made by the layer normalization we don't need the recent ring at least this is what
+happens with llama the next topic we will be talking about is the positional encodings but before we introduce the
+Rotary Positional Embeddings
+rotary positional encodings let's review the positional encodings in the vanilla Transformer as you remember
+after we transform our tokens into embeddings or vectors of size 512 in the
+vanilla Transformer then we sum another Vector to this embeddings
+that indicated the position of the each token inside the sentence and this
+positional embeddings are fixed so they are not learned by the model they are computed once and then they are reused
+for every sentence during training and inference and each word gets his own
+Vector of size 512 we have a new kind of positional encoding called rotary
+positional encoding so absolute positional encodings are fixed vectors that are added to the embedding of a
+token to represent its absolute position in the sentence so the token number one gets its own Vector the token number two
+get its own Vector the token number three get its own Vector so the absolute positional encoding deal with one token
+at a time you can think of it as the pair latitude and longitude on a map
+each point on the earth will have its own unique latitude and longitude so that's an absolute indication of the
+position of each point on the earth and this is the same what happens with absolute positional encoding in the
+vanilla Transformer we have one vector that represents exactly that position which is added to that particular token
+in that position with relative position encodings on the other hand it deals with two token at a
+time and it is involved when we calculate the attention since the attention mechanism captures the
+intensity of how much two words are related to each other relative positional encodings tell them attention
+mechanism the distance between the two words involved in this attention mechanism so given two tokens we create
+a vector that represents their distance this is why it's called the relative because it's relative to the distance
+between two tokens relative positional encodings were first introduced in the
+following paper from Google and you can notice that the vaswani I think is the same author of
+the Transformer model now with absolute positional encoding so
+from the attention is all you need when we calculate the dot product in the
+attention mechanism so if you remember the attention mechanism the formula let me write it
+tension is
+is equal to the query multiplied by the transpose of the key
+divided by the square root of D model T model
+all of this then we do the soft Max and then we multiply it by V etc etc but we
+only concentrate on the Q multiplied by the K transpose in this case
+and this is what we see here so when we calculate this dot product the attention
+mechanism is calculating the dot products between two tokens that already
+have the absolute position encoded into them because we already added the
+absolute position encoding to each token so in this attention mechanism from the vanilla Transformer we have two tokens
+and the attention mechanism while in relative positional encodings we have three
+vectors we have the token one the token two and then we have this Vector here
+we have this Vector here that represents the distance between the these two
+tokens and so we have three vectors involved in this attention mechanism and
+we want the attention mechanism to actually match this token differently based on this Vector here so this Vector
+will indicate to the attention mechanism so to the dot product how to relate these two words that are at this
+particular distance with the rotary positional embeddings we
+do a similar job and they were introduced with this paper so reformer
+and they are from a Chinese company so the dot product used in the attention
+mechanism is a type of inner product so if you remember from linear algebra the
+dot product is a is a kind of operation that has some properties and these properties are the kind of properties
+that every inner product must have so the inner product can be thought of as a generalization of the dot product
+what are the authors of the paper wanted to do is can we find an inner product
+over the two Vector query and key used in the attention mechanism that only
+depends on the two vectors themselves and the relative distance of the token
+they represent that is given two vectors the query and key that only contain the
+embedding of the word they represent and their position inside of the
+sentence so this m is actually an absolute number so it's a scholar it's
+represents the position of the word inside of the sentence and this n represents the position of the second
+word inside of the sentence what they wanted to say is can we find an inner product so this
+um this particular parenthesis we see here is an inner product between these two vectors
+that behaves like this function G that only depends on the embedding of XM so
+the first token of X and the second token and the relative distance between
+them and no other information so this function will be given only the embedding of the first token the
+embedding of the second token and a number that represents the relative position of these two tokens relative
+distance of these two token yes we can find such a function and the
+function is the one defined here so we can define a function G like the
+following that only needs only depends on the two embedding Vector q and K and
+the relative distance and this function is defined in the complex number space
+and it can be converted by using the Euler formula into this form and another
+thing to notice is that this function here the one we are watching is defined
+for vectors of the dimension two of course later we will see what happens when the
+dimension is bigger and when we convert this expression here which is in the complex number space
+into intro with Matrix form through the errors formula we can recognize this
+Matrix here as the rotation Matrix so this Matrix here basically represents the rotation of a vector for example
+this one here so this product here will be a vector and this rotation Matrix will rotate
+this Vector into the space by the amount described by m Theta so the angle M
+Theta let's see an example so imagine we have a vector v0
+and we want to rotate it by Theta by an angle Theta here to arrive to the vector
+v Prime so what we do is we multiply the vector v0 with this Matrix exactly this
+one in which we the values are calculated like this cosine of theta minus sine of theta sine of theta and
+cosine of theta and the resulting Vector will be the same Vector so the same
+length but rotated by this angle and this is why the they are called rotary
+positional embeddings because this Vector represents a rotation
+now when the vector is not two-dimensional but we have n dimension
+for example in the original Transformer model our embedding size is 512 and the Llama is 4096
+we need to use this form now I want you to notice not what are the numbers in
+this in this Matrix but the fact that this Matrix is a sparse so it is not
+conven convenient to use it to compute the positional embeddings because if we multiply by disembedding our tensorflow
+of our GPU our computer will do a lot of operations that are useless because we already know that most of the products
+will be zero so is there a better way more computationally efficient way to do
+this computation well there is this form here so given a token with the
+embedding Vector X and the position M of the token inside the sentence this is
+how we compute the position embedding for the token we take his the dimensions of the token we multiply by this Matrix
+here computed like the following where the Theta are fixed m is the position of
+the token X1 X2 X3 are the dimension of the embedding so the first dimension of the embedding the second dimension of
+the embedding Etc Plus minus the second embedding this this
+Vector computed like with the following positions so minus X2 which is the same
+the negative value of the second dimension of the embedding of the vector
+X multiplied by this Matrix here so there is nothing we have to learn in
+this Matrix everything is fixed because if we watch the previous slide we can see that this data actually is computed
+like this for one for each dimension and so there is nothing to learn so
+basically they are just like the absolute positional encoding so we compute them once and then we can reuse
+them for all the sentences that we will train the model upon another interesting
+property of the rotary positional embeddings is the long term decay so what the authors did they calculated
+an upper Bound for the inner product that we saw before so the G function by varying the distance between the two
+tokens and then they proved that no matter what are the two tokens there is
+an upper bound that decreases as the distance between the two tokens grow
+and if you remember that the inner product or the dot product that we are Computing is for the
+calculation of the attention this dot product represents the intensity of relationship between the two tokens for
+which we are Computing the attention and what this rotary positional embeddings do they will basically Decay this
+relationship this the strength of this relationship between the two tokens if the two tokens that we are matching are
+distant distance distance from them from each other and this is actually what we want so we want
+two words that are very far from each other to have less strong relationship and two words that are close to each
+other to have a stronger relationship and this is a desired property that we want from this rotary positional
+embeddings now the lottery position embeddings are
+only applied to the query and the keys but not the values let's see why well the first consideration is that they
+they basically they come into play when we are calculating the attention so when we calculate the attention it's the
+attention mechanism that will change the score so as you remember the
+attention mechanism is kind of a score that tells how much strong is the relationship between two tokens so this
+relationship will be stronger or less stronger or will change according to
+also the position of these two tokens inside of the sentence and the relative
+distance between these two tokens another thing is that the rotation rotary position embeddings are applied
+after the vector q and K have been multiplied by the W Matrix in the attention mechanism while in the vanilla
+Transformer they are applied before so in the vanilla Transformer the position embeddings are applied right
+after we transform the tokens into embeddings but in the rotary positional embedding
+so in Lama we we don't do this we basically before right after we multiply
+by the W Matrix in the attention mechanism so the W Matrix if you remember is the Matrix of parameters
+that each head has each attention head has
+and so in the in the wrong in the in the Llama basically we apply the rotary
+position encoding after we multiply the vectors q and K by the W Matrix now

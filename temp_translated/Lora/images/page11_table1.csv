@@ -1,0 +1,33 @@
+0
+"Subspace similarity between different r.
+Given Ar=8 and Ar=64 which are the learned adapta-"
+"tion matrices with rank r = 8 and 64 using the same pre-trained model, we perform singular value"
+decomposition and obtain the right-singular unitary matrices UAr=8 and UAr=64.7 We hope to an-
+"(for 1 ≤ i ≤ 8) is
+swer: how much of the subspace spanned by the top i singular vectors in UAr=8"
+"(for 1 ≤ j ≤ 64)? We mea-
+contained in the subspace spanned by top j singular vectors of UAr=64"
+sure this quantity with a normalized subspace similarity based on the Grassmann distance (See Ap-
+pendix G for a more formal discussion)
+"||U i(cid:62)
+U j
+||2"
+"F
+Ar=8
+Ar=64"
+"∈ [0, 1]
+(4)
+φ(Ar=8, Ar=64, i, j) ="
+"min(i, j)"
+"where U i
+represents the columns of UAr=8 corresponding to the top-i singular vectors."
+Ar=8
+"φ(·) has a range of
+[0, 1], where 1 represents a complete overlap of subspaces and 0 a complete"
+"separation.
+See Figure 3 for how φ changes as we vary i and j. We only look at
+the 48th layer"
+"(out of 96) due to space constraint, but
+the conclusion holds for other
+layers as well, as shown"
+in Section H.1.
