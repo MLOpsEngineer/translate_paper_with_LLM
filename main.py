@@ -5,8 +5,6 @@ from langchain.prompts import load_prompt, PromptTemplate
 from langchain_openai import ChatOpenAI
 from langchain_core.runnables import RunnableSequence
 import pdfplumber
-import fitz  # PyMuPDF
-import camelot
 import pandas as pd
 import shutil
 
@@ -16,9 +14,7 @@ load_dotenv()  # .env 파일에서 환경 변수 로드
 # 예: os.environ["OPENAI_API_KEY"] = 'your_api_key'
 
 # LLM 설정
-llm = ChatOpenAI(
-    temperature=0.1, model_name="gpt-4"
-)  # 모델명은 사용 가능한 것으로 설정
+llm = ChatOpenAI(temperature=0, model_name="gpt-4")  # 모델명은 사용 가능한 것으로 설정
 
 # 프롬프트 로드
 template = load_prompt("translation_prompt.yaml", encoding="UTF-8")
@@ -55,8 +51,8 @@ final_processed_files = load_log(final_log_file)
 pdf_files = [f for f in os.listdir(pdf_folder) if f.endswith(".pdf")]
 
 
-# 이미지 및 테이블 추출 함수
-def extract_content_from_page(pdf_path, page_number, image_dir):
+# 콘텐츠 추출 함수 (이미지 및 테이블 제외)
+def extract_content_from_page(pdf_path, page_number):
     content = ""
     # 텍스트 추출
     with pdfplumber.open(pdf_path) as pdf:
@@ -64,58 +60,7 @@ def extract_content_from_page(pdf_path, page_number, image_dir):
         text = page.extract_text() or ""
         content += text + "\n"
 
-    # 이미지 추출
-    images = extract_images_from_pdf_page(pdf_path, page_number, image_dir)
-    if images:
-        for image_filename in images:
-            content += f"[IMAGE: {image_filename}]\n"
-
-    # 테이블 추출 및 이미지 변환
-    tables = camelot.read_pdf(pdf_path, pages=str(page_number), flavor="stream")
-    if tables:
-        for i, table in enumerate(tables):
-            image_filename = f"page{page_number}_table{i+1}.png"
-            image_path = os.path.join(image_dir, image_filename)
-            # 테이블을 이미지로 저장
-            try:
-                table.df.to_html("temp.html")
-                # imgkit 또는 다른 라이브러리를 사용하여 HTML을 이미지로 변환해야 합니다.
-                # 여기서는 간단히 테이블 데이터를 CSV로 저장합니다.
-                table.df.to_csv(
-                    f"{image_dir}/page{page_number}_table{i+1}.csv", index=False
-                )
-                content += f"[TABLE: {image_filename}]\n"
-            except Exception as e:
-                print(
-                    f"테이블 변환 실패: {pdf_path} 페이지 {page_number}, 에러: {str(e)}"
-                )
     return content
-
-
-# 이미지 추출 함수
-def extract_images_from_pdf_page(pdf_path, page_number, image_dir):
-    images = []
-    with fitz.open(pdf_path) as doc:
-        page = doc.load_page(page_number - 1)
-        image_list = page.get_images(full=True)
-        for img_index, img in enumerate(image_list):
-            xref = img[0]
-            pix = fitz.Pixmap(doc, xref)
-            if pix.n < 5:  # GRAY or RGB
-                pix.save(
-                    os.path.join(
-                        image_dir, f"page{page_number}_image{img_index + 1}.png"
-                    )
-                )
-            else:  # CMYK
-                pix = fitz.Pixmap(fitz.csRGB, pix)
-                pix.save(
-                    os.path.join(
-                        image_dir, f"page{page_number}_image{img_index + 1}.png"
-                    )
-                )
-            images.append(f"page{page_number}_image{img_index + 1}.png")
-    return images
 
 
 # 페이지 번역 함수
@@ -129,10 +74,7 @@ async def translate_page(pdf_name, page_number, pdf_path):
         print(f"{pdf_name}/page{page_number} 이미 번역됨. 건너뜁니다.")
         return
 
-    image_dir = os.path.join(output_dir, "images")
-    os.makedirs(image_dir, exist_ok=True)
-
-    content = extract_content_from_page(pdf_path, page_number, image_dir)
+    content = extract_content_from_page(pdf_path, page_number)
 
     try:
         # 번역 실행
@@ -192,19 +134,11 @@ def merge_translations(pdf_name):
         page_path = os.path.join(translated_dir, page_file)
         with open(page_path, "r", encoding="utf-8") as f:
             page_content = f.read()
-            # 이미지 경로 조정
-            page_content = page_content.replace("](images/", f"]({pdf_name}/images/")
             combined_text += page_content + "\n\n"
 
     os.makedirs(final_folder, exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(combined_text)
-
-    # 이미지 복사
-    src_image_dir = os.path.join(translated_dir, "images")
-    dest_image_dir = os.path.join(final_folder, pdf_name, "images")
-    if os.path.exists(src_image_dir):
-        shutil.copytree(src_image_dir, dest_image_dir, dirs_exist_ok=True)
 
     with open(final_log_file, "a") as f:
         f.write(f"{pdf_name}\n")
